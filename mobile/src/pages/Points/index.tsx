@@ -13,7 +13,7 @@ import api from '../../services/api';
 
 interface Item {
   id: number;
-  title: string;
+  name: string;
   image_url: string;
 }
 
@@ -86,7 +86,7 @@ const Points = () => {
     const alreadySelected = selectedItems.findIndex(item => item === id);
 
     if(alreadySelected >= 0) {
-      const filteredItems = selectedItems.filter(item => item === id);
+      const filteredItems = selectedItems.filter(item => item !== id);
 
       setSelectedItems(filteredItems);
     } else {
@@ -167,7 +167,7 @@ const Points = () => {
               activeOpacity={0.6}
             >
               <SvgUri width={42} height={42} uri={item.image_url} />
-              <Text style={styles.itemTitle}>{item.title}</Text>
+              <Text style={styles.itemTitle}>{item.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
