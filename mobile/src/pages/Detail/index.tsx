@@ -53,8 +53,8 @@ const Detail = () => {
     });
   }
 
-  function handleZapZap() {
-
+  function handleWhatsapp() {
+    Linking.openURL(`whatsapp://send?phone=${data.point.whatsapp}&text=Tenho interesse na sobre coleta de resíduos.`)
   }
 
   if(!data.point) {
