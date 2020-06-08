@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, ImageBackground, Image, Text } from 'react-native';
+
 import { RectButton } from 'react-native-gesture-handler';
 import { Feather as Icon } from '@expo/vector-icons';
+
 import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {

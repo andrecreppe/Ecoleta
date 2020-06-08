@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, ScrollView, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, ScrollView, Image, Alert } from 'react-native';
+
 import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
+
 import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
-import { SvgUri } from 'react-native-svg';
+import * as Location from 'expo-location';
 
 import api from '../../services/api';
 
@@ -14,15 +17,56 @@ interface Item {
   image_url: string;
 }
 
+interface Point {
+  id: number;
+  name: string;
+  image: string;
+  latitude: number;
+  longitude: number;
+}
+
 const Points = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [selectedItems, setSelectedItems] = useState<Number[]>([]);
+  const [points, setPoints] = useState<Point[]>([]);
+
+  const [initalPosition, setInitialPosition] = useState<[number, number]>([0,0])
 
   const navigation = useNavigation();
 
   useEffect(() => {
+    async function loadPosition() {
+      const { status } = await Location.requestPermissionsAsync();
+
+      if(status !== 'granted') {
+        Alert.alert('Ooops...', 'Precisamos da sua permissão para obter a localização');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync();
+
+      const { latitude, longitude } = location.coords;
+
+      setInitialPosition([
+        latitude,
+        longitude
+      ])
+    }
+
+    loadPosition();
+  }, []);
+
+  useEffect(() => {
     api.get('items').then(response => {
       setItems(response.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    api.get('points', {
+
+    }).then(response => {
+      setPoints(response.data);
     });
   }, []);
 
@@ -44,8 +88,8 @@ const Points = () => {
     navigation.goBack();
   }
 
-  function handleNativateToDetail() {
-    navigation.navigate('Detail');
+  function handleNativateToDetail(id: number) {
+    navigation.navigate('Detail', { pointID: id });
   }
 
   return (
@@ -63,29 +107,34 @@ const Points = () => {
         </Text>
 
         <View style={styles.mapContainer}>
-          <MapView 
-            style={styles.map}
-            initialRegion={{
-              latitude: -22.3684931,
-              longitude: -49.0618176,
-              latitudeDelta: 0.014,
-              longitudeDelta: 0.014
-            }} 
-          >
-            <Marker
-              style={styles.mapMarker}
-              onPress={handleNativateToDetail}
-              coordinate={{
-                latitude: -22.3684931,
-                longitude: -49.0618176,
+          { initalPosition[0] !== 0 && ( //Condicional
+            <MapView 
+              style={styles.map}
+              initialRegion={{
+                latitude: initalPosition[0],
+                longitude: initalPosition[1],
+                latitudeDelta: 0.014,
+                longitudeDelta: 0.014
               }} 
             >
-              <View style={styles.mapMarkerContainer}>
-                <Image style={styles.mapMarkerImage} source={{ uri: '' }} />
-                <Text style={styles.mapMarkerTitle}>Teste</Text>
-              </View>
-            </Marker>
-          </MapView>
+              {points.map(point => (
+                <Marker
+                  key={String(point.id)}
+                  style={styles.mapMarker}
+                  onPress={() => handleNativateToDetail(point.id)}
+                  coordinate={{
+                    latitude: point.latitude,
+                    longitude: point.longitude,
+                  }} 
+                >
+                  <View style={styles.mapMarkerContainer}>
+                    <Image style={styles.mapMarkerImage} source={{ uri: point.image }} />
+                    <Text style={styles.mapMarkerTitle}>{point.name}</Text>
+                  </View>
+                </Marker>
+              ))}
+            </MapView>
+          ) }
         </View>
       </View>
 
@@ -98,7 +147,10 @@ const Points = () => {
           {items.map(item => (
             <TouchableOpacity 
               key={String(item.id)} 
-              style={styles.item} 
+              style={[
+                styles.item,
+                selectedItems.includes(item.id) ? styles.selectedItem : {}
+              ]} 
               onPress={() => handleSelectItem(item.id)}
               activeOpacity={0.6}
             >
