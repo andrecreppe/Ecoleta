@@ -4,7 +4,6 @@ import Constants from 'expo-constants';
 import { useNavigation } from '@react-navigation/native';
 import { Feather as Icon, FontAwesome } from '@expo/vector-icons';
 import { RectButton } from 'react-native-gesture-handler';
-import { Rect } from 'react-native-svg';
 
 const Detail = () => {
   const navigation = useNavigation();
