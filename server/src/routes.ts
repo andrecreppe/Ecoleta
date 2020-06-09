@@ -1,6 +1,7 @@
 import express from 'express';
 import knex from './database/connection';
 import multer from 'multer';
+import { celebrate, Joi } from 'celebrate';
 
 import multerConfig from '../src/config/multer';
 
@@ -19,7 +20,25 @@ const itemsController = new ItemsController();
 //Items
 routes.get('/items', itemsController.index);
 //Points
-routes.post('/points', upload.single('image'), pointsController.create);
+routes.post(
+    '/points',
+    upload.single('image'),
+    celebrate({
+        body: Joi.object().keys({
+            name: Joi.string().required(),
+            email: Joi.string().email().required(),
+            whatsapp: Joi.number().required(),
+            latitude: Joi.number().required(),
+            longitude: Joi.number().required(),
+            city: Joi.string().required(),
+            uf: Joi.string().max(2).required(),
+            items: Joi.string().required()
+        })
+    }, {
+        abortEarly: false
+    }),
+    pointsController.create
+);
 routes.get('/points', pointsController.index);
 routes.get('/points/:id', pointsController.show);
 
